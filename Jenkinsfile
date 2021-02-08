@@ -9,7 +9,7 @@ pipeline{
            stage('Checkout'){
                agent any
               steps{
-                 git 'https://github.com/ambujojha2019/DevOpsClassCodes.git'
+                 git 'https://github.com/Sonal0409/DevOpsClassCodes.git'
               }
           }
           stage('Compile'){
@@ -42,6 +42,24 @@ pipeline{
                   sh 'mvn package'
               }
           }
+          stage('Deploy'){
+      agent any
+      steps{
+        sh label: '', script: '''rm -rf mydockerfile
+mkdir mydockerfile
+cd mydockerfile
+cp /var/lib/jenkins/workspace/Package/target/addressbook.war .
+touch dockerfile
+cat <<EOT>> dockerfile
+From tomcat
+ADD addressbook.war /usr/local/tomcat/webapps
+EXPOSE 8080
+CMD ["catalina.sh", "run"]
+EOT
+sudo docker build -t myimage:$BUILD_NUMBER .
+sudo docker run -itd -P myimage:$BUILD_NUMBER'''
+      }
+    }
           
       }
 }
